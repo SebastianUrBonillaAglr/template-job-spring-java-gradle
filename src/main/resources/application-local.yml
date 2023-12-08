@@ -1,0 +1,12 @@
+aws:
+  region: us-east-1
+  dynamodb:
+    endpointUrl: "http://127.0.0.1:8000"
+
+jobScheduling:
+  status:
+    old: EN_PROCESO
+    new: CANCELADO
+  createdDatetime:
+    timeUnit: DAYS
+    timeToBeUpdated: 1

@@ -1,0 +1,66 @@
+apply plugin: "jacoco"
+apply plugin: "org.sonarqube"
+
+sonar {
+    properties {
+        property "sonar.organization", "digitalfemsa-genesys"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.sources", "src/main"
+        property "sonar.tests", "src/test"
+    }
+}
+
+jacocoTestReport {
+
+    group "Reporting"
+    description "Generate Jacoco Coverage Reports"
+
+    reports {
+        xml.required = true
+        csv.required = false
+        html.outputLocation = file("${rootProject.buildDir}/reports/jacoco")
+    }
+}
+
+//TODO - Tweak initial cover ratios
+jacocoTestCoverageVerification {
+    enabled = jacocoTestCoverageEnabled
+    violationRules {
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'CLASS'
+                value = 'MISSEDCOUNT'
+                //Tweak this as you gain coverage
+                maximum = 1000
+            }
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                //Tweak this as you gain coverage
+                minimum = 0
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                //Tweak this as you gain coverage
+                minimum = 0
+            }
+            excludes = []
+        }
+    }
+}
+
+//// Sonar can use JaCoCo test output to publish code quality metrics to Sonarqube server.
+//sonarqube {
+//    properties {
+//        property "sonar.jacoco.reportPath", "${buildDir}/reports/jacoco/jacocoTest.exec"
+//        //        skipProject = true
+//        /* Adding additional sources to analyze */
+//        /* properties["sonar.sources"] += sourceSets.main2.scala.srcDirs
+//           properties["sonar.tests"] += sourceSets.test2.scala.srcDirs
+//        */
+//    }
+//}
+
+check.dependsOn(['jacocoTestReport', 'jacocoTestCoverageVerification'])

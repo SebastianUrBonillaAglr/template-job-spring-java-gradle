@@ -1,0 +1,35 @@
+spring:
+  main:
+    web-application-type: none
+  application:
+    name: template
+  profiles:
+    active: ${ENV:local}
+  jackson:
+    serialization:
+      indent-output: true
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+dd:
+  logs:
+    injection: true
+
+aws:
+  region: ${AWS_REGION}
+
+lending:
+  logging:
+    bean-logging:
+      enabled: true
+    enabled-operations:
+      exception: true
+      job-scheduling: true
+
+jobScheduling:
+  status:
+    old: ${PRE_OFFER_STATUS}
+    new: ${PRE_OFFER_NEW_STATUS}
+  createdDatetime:
+    timeUnit: ${PRE_OFFER_TIME_UNIT}
+    timeToBeUpdated: ${PRE_OFFER_TIME_TO_BE_UPDATED}

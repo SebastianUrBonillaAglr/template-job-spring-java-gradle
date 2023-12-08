@@ -1,0 +1,92 @@
+buildscript {
+	ext {
+		rootGradleDir = "${rootProject.rootDir}/gradle"
+		mapstructSpringExtensionsVersion = "1.0.2"
+		sastEnabled = (findProperty("sastEnabled") ?: "false").toBoolean()
+		ignoreCheckstyleFailures = (findProperty("ignoreCheckstyleFailures") ?: "true").toBoolean()
+		ignorePmdFailures = (findProperty("ignorePmdFailures") ?: "true").toBoolean()
+		jacocoEnabled = (findProperty("jacocoEnabled") ?: "true").toBoolean()
+		jacocoTestCoverageEnabled = (findProperty("jacocoTestCoverageEnabled") ?: "true").toBoolean()
+	}
+}
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.0.7'
+	id "io.spring.dependency-management" version "1.0.15.RELEASE"
+	id "org.sonarqube" version "4.3.0.3225"
+	id "jacoco"
+}
+
+if (sastEnabled) {
+	project.logger.lifecycle("Applying static code analysis build file: staticCodeAnalysis.gradle")
+	apply from: "${rootGradleDir}/static-code-analysis/staticCodeAnalysis.gradle"
+}
+
+if (jacocoEnabled) {
+	project.logger.lifecycle("Applying jacoco build file: codeQuality.gradle")
+	apply from: "${rootGradleDir}/code-quality/codeQuality.gradle"
+}
+
+apply from: "${rootGradleDir}/dynamodblocal/dynamodblocal.gradle"
+
+group = 'com.digitalfemsa.tit.lending.job'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '17'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+	configureEach {
+		exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		name = "GitHubPackages"
+		url = uri("https://maven.pkg.github.com/digitaltitransversal/**")
+		credentials {
+			username = project.findProperty("package.user") ?: System.getenv("PACKAGE_USERNAME")
+			password = project.findProperty("package.token") ?: System.getenv("PACKAGE_TOKEN")
+		}
+	}
+	maven {
+		name
+		url "https://s3-us-west-2.amazonaws.com/dynamodb-local/release"
+	}
+}
+
+dependencies {
+	modules {
+		module("org.springframework.boot:spring-boot-starter-logging") {
+			replacedBy("org.springframework.boot:spring-boot-starter-log4j2", "Use Log4j2 instead of Logback")
+		}
+	}
+
+	developmentOnly "org.springframework.boot:spring-boot-devtools"
+	implementation "org.springframework.boot:spring-boot-starter"
+	implementation "org.springframework.boot:spring-boot-starter-json"
+	implementation 'org.springframework.boot:spring-boot-autoconfigure'
+	implementation "org.springframework.boot:spring-boot-starter-log4j2"
+	implementation "org.springframework.boot:spring-boot-starter-validation"
+	implementation "com.digitalfemsa.tit.lending.lib:tr-lending-lend-logging-lib-backend-java-gradle:1.0.0"
+	implementation(platform("software.amazon.awssdk:bom:2.20.141"))
+	implementation "software.amazon.awssdk:dynamodb"
+	implementation "software.amazon.awssdk:dynamodb-enhanced"
+	compileOnly "org.projectlombok:lombok"
+	annotationProcessor "org.projectlombok:lombok"
+	testImplementation "org.springframework.boot:spring-boot-starter-test"
+	testImplementation("com.amazonaws:DynamoDBLocal:2.0.0") {
+		exclude module: "mockito-core"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

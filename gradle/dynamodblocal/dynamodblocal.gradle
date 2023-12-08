@@ -1,0 +1,13 @@
+task copyNativeDeps(type: Copy) {
+    mkdir "build/native-libs"
+    from(configurations.testRuntimeClasspath) {
+        include '*.dll'
+        include '*.dylib'
+        include '*.so'
+    }
+    into 'build/native-libs'
+}
+
+compileTestJava {
+    dependsOn copyNativeDeps
+}

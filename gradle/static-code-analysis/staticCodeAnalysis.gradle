@@ -1,0 +1,37 @@
+apply plugin: 'checkstyle'
+apply plugin: 'pmd'
+
+configurations.all {
+  resolutionStrategy {
+    //Unsafe Dependency Resolution [Medium Severity][https://security.snyk.io/vuln/SNYK-JAVA-COMBEUST-174815] in com.beust:jcommander@1.48
+    force 'com.beust:jcommander:1.75'
+  }
+}
+
+checkstyle {
+    toolVersion = '8.29'
+    ignoreFailures = ignoreCheckstyleFailures
+    configDirectory = file("${rootGradleDir}/static-code-analysis/checkstyle")
+}
+
+pmd {
+  ignoreFailures = ignorePmdFailures
+  consoleOutput = true
+  rulesMinimumPriority = 3
+}
+
+//TODO - Review Checkstyle oputput report
+tasks.withType(Checkstyle) {
+    reports {
+        xml.required = false
+        html.required = true
+    }
+}
+
+//TODO - Review PMD oputput report
+tasks.withType(Pmd) {
+    reports {
+        xml.required = false
+        html.required = true
+    }
+}
